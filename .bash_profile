@@ -1,6 +1,5 @@
 alias eb='vim ~/.bash_profile'
 alias sb='source ~/.bash_profile'
-alias gs='git status'
 alias grep='grep --colour=auto'
 alias server='python -m SimpleHTTPServer'
 alias vim='nvim'
@@ -17,41 +16,47 @@ export PATH="$HOME/.jenv/bin:${PATH}"
 export GPG_TTY=$(tty)
 export HOMEBREW_NO_AUTO_UPDATE=1
 
-##### CETAS #####
-export GH_USER=cmlenius
-export GH_EMAIL=cameron.lenius@gmail.com
-export DOCKER_BUILDKIT=1
+##### GENERAL #####
+alias ls='ls -GFh'
+alias grep='grep --colour=auto'
+bindkey '\e[H' beginning-of-line
+bindkey '\e[F' end-of-line
+
+setopt PROMPT_SUBST
+PROMPT='%{%F{blue}%}%9c %{%F{green}%}$(current_git_branch)%{%F{magenta}%}$ %{%F{none}%}'
 
 ##### GIT #####
-git_branch() {
-  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
-}
-
-# Command Prompt
-PS1="\[\033[34m\]\w \[\033[32m\]\$(git_branch)\[\033[00m\]$ "
-
 if [ -f ~/.git-completion.bash ]; then
   . ~/.git-completion.bash
 fi
 
-# Better git log
 function gl {
-  #git log "$@" --color --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-  hash='%C(red)%h%C(reset)'
-  date='%C(blue)%ar%C(reset)'
-  auth='%C(dim white)- %an%C(reset)'
-  refs='%C(green)%d%C(reset)'
-  msg='%C(white)%s%C(reset)'
-  git log "$@" -15 --abbrev-commit --date=local --decorate --format=format:"$hash $date $msg $auth"
+  hash='%C(red)%h'
+  date='%C(blue)%cs'
+  msg='%C(white)%<(80,trunc)%s'
+  auth='%C(dim white)- %an'
+  git log "$@" -15 --abbrev-commit --format=format:"$hash $date $msg $auth%C(reset)"
 }
 
-# Push and set upstream
+function gs { git status "$@" }
+function gbb { git branch "$@" --color=always --sort=-committerdate | head -10 }
+function gss { git stash save "$@" }
+function gsa { git stash apply stash@{$1} }
+function gsd { git stash drop stash@{$1} }
+function gsp { git stash pop stash@{$1} }
+ 
+function gsl { 
+  reflog='%C(red)%gd'
+  date='%C(blue)%cs'
+  msg='%C(reset)%gs'
+  git stash list --color=always --format="$reflog $date $msg" | sed -e "s/On.*:\ //" 
+}
+ 
 function gp {
   branch=`echo $(git_branch) | sed 's/^.\(.*\).$/\1/'`
   git push --set-upstream origin $branch
 }
 
-# Spawns selectable menu of recent git branchs
 function gb {
   options=( $(git for-each-ref refs/heads/ --format='%(refname:short)' --sort=-committerdate | head -10) )
 
@@ -61,4 +66,10 @@ function gb {
 
   git checkout ${options[$choice]}
 }
+
+
+current_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
 if [ -f ~/.bashrc ]; then . ~/.bashrc; fi
