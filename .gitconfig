@@ -1,0 +1,19 @@
+[pull]
+	rebase = true
+[rebase]
+	autoStash = true
+[remote "origin"]
+	prune = true
+[push]
+	default = upstream
+[user]
+  name = cmlenius
+	email = cameron.lenius@gmail.com
+[color]
+	ui = true
+[color "branch"]
+  current = white reverse
+[color "status"]
+  added = green
+  changed = red
+  untracked = magenta
